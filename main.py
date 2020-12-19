@@ -169,6 +169,11 @@ if __name__ == "__main__":
 
     screen.fill((0, 0, 0))
 
+    if hero_at_center:
+        camera.update(player)
+        for sprite in all_sprites:
+            camera.apply(sprite)
+
     tiles_group.draw(screen)
     player_group.draw(screen)
     pygame.display.flip()
