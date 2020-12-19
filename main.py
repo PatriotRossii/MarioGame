@@ -160,6 +160,7 @@ def start_screen():
                 return
 
 
+hero_at_center = True
 if __name__ == "__main__":
     start_screen()
 
@@ -172,8 +173,6 @@ if __name__ == "__main__":
     player_group.draw(screen)
     pygame.display.flip()
 
-    camera.update(player)
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -184,6 +183,12 @@ if __name__ == "__main__":
                 if event.key in (pygame.K_d, pygame.K_a):
                     player.move(1 if event.key == pygame.K_d else -1, 0)
 
+                if hero_at_center:
+                    camera.update(player)
+                    for sprite in all_sprites:
+                        camera.apply(sprite)
+
+                screen.fill((0, 0, 0))
                 tiles_group.draw(screen)
                 player_group.draw(screen)
                 pygame.display.flip()
