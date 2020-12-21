@@ -1,31 +1,58 @@
 from src.test.test import TestResult, Test
+from abc import ABCMeta, abstractmethod
 
 
-class AbstractStorage:
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(getattr(cls, "__class__"), cls).__new__(cls)
-            cls.instance._init_default()
-        return cls.instance
+class AbstractStorage(metaclass=ABCMeta):
+    _instance = None
+
+    defaults = dict()
 
     @classmethod
-    def _init_default(cls):
+    def singleton(cls):
+        if cls._instance is None:
+            cls._instance = cls.create_singleton()
+            cls._instance.init_default()
+        return cls._instance
+
+    @classmethod
+    @abstractmethod
+    def create_singleton(cls):
         pass
 
-    @classmethod
-    def set_value(cls, key, value):
-        setattr(cls.instance, key, value)
+    def init_default(self):
+        for key, value in getattr(self, "defaults", dict()).items():
+            self.set_value(key, value)
 
-    @classmethod
-    def value(cls, key):
-        return getattr(cls.instance, key)
+    def set_value(self, key, value):
+        setattr(self, key, value)
+
+    def value(self, key):
+        return getattr(self, key)
 
 
 if __name__ == "__main__":
     def test_persistance():
-        AbstractStorage().set_value("key", 80)
-        return TestResult(AbstractStorage().value("key") == 80)
+        class UniversalStorage(AbstractStorage):
+            @classmethod
+            def create_singleton(cls):
+                return UniversalStorage()
+
+        UniversalStorage.singleton().set_value("key", 80)
+        return TestResult(UniversalStorage.singleton().value("key") == 80)
+
+    def test_custom_storage():
+        class TestStorage(AbstractStorage):
+            defaults = {
+                "item": 50
+            }
+
+            @classmethod
+            def create_singleton(cls):
+                return TestStorage()
+
+        return TestResult(TestStorage.singleton().value("item") == 50)
 
     test = Test()
     test.add_test(test_persistance)
+    test.add_test(test_custom_storage)
     test.run()
